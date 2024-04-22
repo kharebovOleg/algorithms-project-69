@@ -9,9 +9,8 @@ public class SearchEngine {
 
         List<String> result = new ArrayList<>();
 
-        for (Map<String,String> map : docs) {
-            String doc = map.get("text");
-            if (doc.contains(word)) {
+        for (Map<String, String> map : docs) {
+            if (map.get("text").contains(word)) {
                 result.add(map.get("id"));
             }
         }

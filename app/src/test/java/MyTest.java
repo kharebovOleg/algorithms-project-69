@@ -43,20 +43,18 @@ public class MyTest {
     }
 
     @Test
-    public void testOneContains() {
-        var doc1 = "I can't straight unless I've had a pint!";
-        var doc2 = "Don't shoot that thing at me.";
-        var doc3 = "I'm your.";
+    public void testOneContainsWithPunctuation() {
+        var doc1 = "I can't shoot straight unless I've had a pint!?&&";
+        var doc2 = "I can't shoot straight unless I've had a pint";
+        List<Map<String, String>> docs =
+                List.of(Map.of("id", "doc1", "text", doc1),
+                        Map.of("id", "doc2", "text", doc2));
 
-        List<Map<String, String>> docs = List.of(
-                Map.of("id", "doc1", "text", doc1),
-                Map.of("id", "doc2", "text", doc2),
-                Map.of("id", "doc3", "text", doc3)
-        );
+        List<String> result1 = SearchEngine.search(docs, "pint");
+        assertEquals(List.of("doc1", "doc2"), result1);
 
-        List<String> result = SearchEngine.search(docs, "shoot");
-
-        assertEquals(List.of("doc2"), result);
+        List<String> result2 = SearchEngine.search(docs, "pint!");
+        assertEquals(List.of("doc1"), result2);
     }
 
 
