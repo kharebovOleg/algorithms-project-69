@@ -11,7 +11,7 @@ public class MyTest {
     @Test
     public void testAllContains() {
         var doc1 = "I can't shoot straight unless I've had a pint!";
-        var doc2 = "Don't shoot shoot shoot that thing at me.";
+        var doc2 = "Don't shoot shoot shoot at me.";
         var doc3 = "I'm your shoot.";
 
         List<Map<String, String>> docs = List.of(
@@ -76,6 +76,22 @@ public class MyTest {
         List<String> result = SearchEngine.search(docs, "shoot");
         assertEquals(List.of("doc5", "doc2", "doc1", "doc4"), result);
 
+    }
+
+    @Test
+    public void testWithFuzzySearch() {
+        var doc1 = "I can't shoot straight unless I've had a pint!";
+        var doc2 = "Don't shoot shoot shoot that thing at me.";
+        var doc3 = "I'm your shooter.";
+
+        List<Map<String, String>> docs = List.of(
+                Map.of("id", "doc1", "text", doc1),
+                Map.of("id", "doc2", "text", doc2),
+                Map.of("id", "doc3", "text", doc3)
+        );
+
+        List<String> result = SearchEngine.search(docs, "shoot at me");
+        assertEquals(List.of("doc2", "doc1"), result);
     }
 
 
