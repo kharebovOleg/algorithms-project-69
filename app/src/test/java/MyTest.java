@@ -75,7 +75,6 @@ public class MyTest {
 
         List<String> result = SearchEngine.search(docs, "shoot");
         assertEquals(List.of("doc5", "doc2", "doc1", "doc4"), result);
-
     }
 
     @Test
@@ -92,6 +91,26 @@ public class MyTest {
 
         List<String> result = SearchEngine.search(docs, "shoot at me");
         assertEquals(List.of("doc2", "doc1"), result);
+    }
+
+    @Test
+    public void testMetricWorksWithInvertedIndex() {
+        var doc1 = "I can't shoot shoot straight unless I've had a pint!"; //2
+        var doc2 = "Don't shoot shoot! shoot!! that thing at me."; // 3
+        var doc3 = "I'm your shooter."; // 0
+        var doc4 = "shoot."; // 1
+        var doc5 = "shoot, shoot shoot shoot"; // 4
+
+        List<Map<String, String>> docs = List.of(
+                Map.of("id", "doc1", "text", doc1),
+                Map.of("id", "doc2", "text", doc2),
+                Map.of("id", "doc3", "text", doc3),
+                Map.of("id", "doc4", "text", doc4),
+                Map.of("id", "doc5", "text", doc5)
+        );
+
+        List<String> result = SearchEngine.invertedSearch(docs, "shoot");
+        assertEquals(List.of("doc5", "doc2", "doc1", "doc4"), result);
     }
 
 

@@ -50,11 +50,13 @@ public class SearchEngine {
             return clearSearchList;
         }
     }
+
     private static long countCoincidence(String text, String word) {
         return Arrays.stream(text.split(" "))
                 .filter(s -> s.matches("^" + word + "(\\p{Punct})*$"))
                 .count();
     }
+
     private static List<String> makeSortedList(Map<String, Long> map) {
         List<String> result = map.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
@@ -64,13 +66,15 @@ public class SearchEngine {
         return result;
     }
 
-    // Инвертированный индекс
+    // Inverted search
 
-    private static Map<String, List<String>> index = new HashMap<>();
+    private final static Map<String, List<String>> index = new HashMap<>();
 
     // Добавление документа в индекс
     private static void addDocument(String documentId, String documentText) {
-        String[] words = documentText.split("\\s+");
+        // очистим слова от знаков препинания
+        String clearText = documentText.replaceAll("(\\p{Punct})*", "");
+        String[] words = clearText.split("\\s+");
         for (String word : words) {
             // Приводим слово к нижнему регистру
             word = word.toLowerCase();
@@ -91,36 +95,38 @@ public class SearchEngine {
     // инвертированный поиск
     public static List<String> invertedSearch(List<Map<String, String>> docs, String word) {
 
-        List<String> clearSearchList;
-        List<String> fuzzySearchList;
-        Map<String, Long> clearSearchResultMap = new HashMap<>();
-        Map<String, Long> fuzzySearchResultMap = new HashMap<>();
+        Map<String, Long> searchResultMap = new HashMap<>();
+        Map<String, String> allDocs = new HashMap<>(); // специально завели эту hashMap, она нам понадобится попозже
 
+        // делаем инвертированный индекс
         for (Map<String, String> map : docs) {
             String text = map.get("text");
             String documentId = map.get("id");
-
+            allDocs.put(documentId, text); // заполняем allDocs
             addDocument(documentId, text);
         }
 
         // todo что делать если искомое слово является фразой?
 
         word = word.toLowerCase();
-        List<String> results = new ArrayList<>();
+        word = word.replaceAll("(\\p{Punct})*", "");
+        List<String> results;
 
-        for (String str : index.keySet()) {
-            if (str.matches("^" + word + "(\\p{Punct})*$")) {
-                // создали список всех документов, где нашли совпадения
-                // так как в тексте искомая строка может содержаться несколько раз
-                // то в списке одни и те же документы могут повторяться
-                // todo надо будет вернуть список из документов где на первом месте
-                //  будут те, которые чаще встречаются (попробовать через лямбды - rangingBy)
+        if (index.containsKey(word)) { // если в инвертированном индексе есть искомое слово,
+            // то достаем список id документов, в которых оно встречается
+            results = index.get(word);
 
-                results.addAll(index.get(str));
+            // теперь мы имеем список тех id документов, где имеется искомое слово
+            // надо получить тексты этих документов
+
+            for (String str: results) {
+                String documentText = allDocs.get(str); // вот и текст
+                // теперь считаем количество совпадений
+                long value = countCoincidence(documentText, word);
+                searchResultMap.put(str, value);
             }
-        }
-
-        return null;
+            return makeSortedList(searchResultMap);
+        } else return null;
 
     }
 
