@@ -75,20 +75,28 @@ public class MyTest {
         assertEquals(List.of("doc5", "doc2", "doc1", "doc4"), result);
     }
 
-//    @Test
-//    public void testWithFuzzySearch() {
-//        var doc1 = "I can't shoot straight unless I've had a pint!";
-//        var doc2 = "Don't shoot shoot shoot that thing at me.";
-//        var doc3 = "I'm your shooter.";
-//
-//        List<Map<String, String>> docs = List.of(
-//                Map.of("id", "doc1", "text", doc1),
-//                Map.of("id", "doc2", "text", doc2),
-//                Map.of("id", "doc3", "text", doc3)
-//        );
-//
-//        List<String> result = SearchEngine.invertedSearch(docs, "Don't");
-//        assertEquals(List.of("doc2"), result);
-//    }
+    @Test
+    public void testWithFewWords() {
+        var doc1 = "Hello World this is a table"; // 5
+        var doc2 = "Don't shoot shoot shoot this thing at me."; //6
+        var doc3 = "I'm your me shooter.";
+        var doc4 = "This is a test text. This is a test text? This is a test text, This is a test text"; // 2
+        var doc5 = "This is a test text. This is a test text? a is This? test text, is a test This text"; // 3
+        var doc6 = "This is a test text. a is This? test text, is a test This text"; // 4
+        var doc7 = "This is a test text. This is a test text? This is a test text, This is a test text is the sorry"; // 1
+
+        List<Map<String, String>> docs = List.of(
+                Map.of("id", "doc1", "text", doc1),
+                Map.of("id", "doc2", "text", doc2),
+                Map.of("id", "doc3", "text", doc3),
+                Map.of("id", "doc4", "text", doc4),
+                Map.of("id", "doc5", "text", doc5),
+                Map.of("id", "doc6", "text", doc6),
+                Map.of("id", "doc7", "text", doc7)
+        );
+
+        List<String> result = SearchEngine.invertedSearch(docs, "This is a test text");
+        assertEquals(List.of("doc7", "doc4", "doc5", "doc6", "doc1", "doc2"), result);
+    }
 
 }

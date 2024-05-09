@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="MyTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2024-05-08T08:02:51" hostname="DESKTOP-15VMVI4" time="0.024">
+<testsuite name="MyTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2024-05-09T12:43:30" hostname="DESKTOP-15VMVI4" time="0.016">
   <properties/>
-  <testcase name="testMetricWorks()" classname="MyTest" time="0.024">
-    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;[doc5, doc2, doc1, doc4]&gt; but was: &lt;[shoot, shoot shoot shoot, Don't shoot shoot! shoot!! that thing at me., I can't shoot shoot straight unless I've had a pint!, shoot.]&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;[doc5, doc2, doc1, doc4]&gt; but was: &lt;[shoot, shoot shoot shoot, Don't shoot shoot! shoot!! that thing at me., I can't shoot shoot straight unless I've had a pint!, shoot.]&gt;
+  <testcase name="testWithFewWords()" classname="MyTest" time="0.016">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;[doc7, doc4, doc5, doc6, doc1, doc2]&gt; but was: &lt;[doc4, doc7, doc5, doc6, doc1, doc2]&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;[doc7, doc4, doc5, doc6, doc1, doc2]&gt; but was: &lt;[doc4, doc7, doc5, doc6, doc1, doc2]&gt;
 	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:55)
 	at app//org.junit.jupiter.api.AssertionUtils.failNotEqual(AssertionUtils.java:62)
 	at app//org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
 	at app//org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
 	at app//org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1141)
-	at app//MyTest.testMetricWorks(MyTest.java:75)
+	at app//MyTest.testWithFewWords(MyTest.java:99)
 	at java.base@18.0.2-ea/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
 	at java.base@18.0.2-ea/java.lang.reflect.Method.invoke(Method.java:577)
 	at app//org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:725)
