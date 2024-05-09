@@ -1,5 +1,7 @@
 package hexlet.code;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,11 +27,11 @@ public class SearchEngine {
             if (value > 0) clearSearchResultMap.put(key, value);
 
             // Если в слове есть пробелы и точных совпадений не найдено
-            if (clearSearchResultMap.isEmpty() && (word.matches(".*\\w.*"))) { // п.2
+            if (clearSearchResultMap.isEmpty() && (word.matches(".*\\s.*"))) { // п.2
                 /*
-                1. разбиваем строку по пробелам
-                2. для каждой части ищем количество совпадений
-                3. суммируем
+                1) разбиваем строку по пробелам
+                2) для каждой части ищем количество совпадений
+                3) суммируем
                  */
                 long sum = Arrays.stream(word.split(" "))
                         .mapToLong(s -> countCoincidence(text, s))
@@ -80,6 +82,7 @@ public class SearchEngine {
             word = word.toLowerCase();
 
             // Если слово уже есть в индексе, добавляем документ к списку документов
+            // todo Если в тексте было несколько одинаковых слов, то он добавит id документа 2 раза
             if (index.containsKey(word)) {
                 List<String> docList = index.get(word);
                 docList.add(documentId);
@@ -92,42 +95,81 @@ public class SearchEngine {
         }
     }
 
-    // инвертированный поиск
     public static List<String> invertedSearch(List<Map<String, String>> docs, String word) {
 
-        Map<String, Long> searchResultMap = new HashMap<>();
+        List<String> clearSearchList;
+        List<String> fuzzySearchList;
         Map<String, String> allDocs = new HashMap<>(); // специально завели эту hashMap, она нам понадобится попозже
 
         // делаем инвертированный индекс
         for (Map<String, String> map : docs) {
-            String text = map.get("text");
+            String docText = map.get("text");
             String documentId = map.get("id");
-            allDocs.put(documentId, text); // заполняем allDocs
-            addDocument(documentId, text);
+            if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText); // заполняем allDocs
+            addDocument(documentId, docText);
         }
 
-        // todo что делать если искомое слово является фразой?
-
-        word = word.toLowerCase();
-        word = word.replaceAll("(\\p{Punct})*", "");
+        String correctedWord = word.toLowerCase().replaceAll("(\\p{Punct})*", "");
         List<String> results;
 
-        if (index.containsKey(word)) { // если в инвертированном индексе есть искомое слово,
-            // то достаем список id документов, в которых оно встречается
-            results = index.get(word);
+        if (correctedWord.matches(".*\\s.*")) { // если запрос содержит несколько слов
+            // todo написать проверку более правильную запрос может содержать 1 слово и пробел
 
-            // теперь мы имеем список тех id документов, где имеется искомое слово
-            // надо получить тексты этих документов
+            List<String> piecesOfRequest =
+                    Arrays.stream(correctedWord.split("\\s+")).toList(); // разбили запрос на слова
 
-            for (String str: results) {
-                String documentText = allDocs.get(str); // вот и текст
-                // теперь считаем количество совпадений
-                long value = countCoincidence(documentText, word);
-                searchResultMap.put(str, value);
+            Set<String> docsIdSet = piecesOfRequest.stream() // Set из id тех док-ов, где есть часть искомого слова
+                    .filter(index::containsKey)
+                    .flatMap(s -> index.get(s).stream())
+                    .collect(Collectors.toSet());
+
+            if (docsIdSet.isEmpty()) {
+                return List.of(); // если пусто, значит нет ни одного слова из запроса
+            } else {
+
+                // теперь надо пройтись по текстам, и в каждом тексте проверить следующее:
+                // 1) Есть ли в тексте полное соответствие с запросом?
+                // 2) Если нет, то найти те слова, которые встречаются в нем?
+
+                Map<String, Long> documentsWithCompleteCoincidence = new HashMap<>(); // для текстов с полным совпадением
+                Map<String, Long> documentsWithFuzzyCoincidence = new HashMap<>();// для текстов с неполным совпадением
+
+                for (String docId : docsIdSet) {
+                    String correctedDocText = allDocs.get(docId).toLowerCase().replaceAll("(\\p{Punct})*", "");
+                    if (correctedDocText.contains(correctedWord)) { // если найдено полное совпадение
+                        long value = StringUtils.countMatches(correctedDocText, correctedWord);
+                        documentsWithCompleteCoincidence.put(docId, value);
+                    } else {
+                        long value = Arrays.stream(correctedDocText.split("\\s+")) // сколько слов из запроса есть в документе
+                                .filter(piecesOfRequest::contains)
+                                .distinct() // без повторений одних и тех же слов
+                                .count();
+                        if (value > 0) documentsWithFuzzyCoincidence.put(docId, value);
+                    }
+                }
+                clearSearchList = makeSortedList(documentsWithCompleteCoincidence);
+                fuzzySearchList = makeSortedList(documentsWithFuzzyCoincidence);
+
+                clearSearchList.addAll(fuzzySearchList);
+
+                return clearSearchList.stream()
+                        .distinct().collect(Collectors.toList());
             }
-            return makeSortedList(searchResultMap);
-        } else return null;
+            // если искомая строка является одним словом
+        } else if (index.containsKey(correctedWord)) { // если в инвертированном индексе есть искомое слово,
+            // то достаем список id документов, в которых оно встречается
+            // todo в этом месте код работает не правильно
+            results = index.get(correctedWord);
+            Map<String, Long> searchResultMap = new HashMap<>();
+            results.stream()
+                    .map(allDocs::get)
+                    .forEach(s -> {
+                        long value = countCoincidence(s, word);
+                        searchResultMap.put(s, value); // todo здесь ошибка s - это текст документа, а нам нужен его id
+                    });
 
+            return makeSortedList(searchResultMap);
+        } else return List.of();
     }
 
 }
