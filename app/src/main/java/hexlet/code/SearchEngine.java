@@ -32,18 +32,11 @@ public class SearchEngine {
     }
 
     public static List<String> search(List<Map<String, String>> docs, String word) {
-        /*
-            1. Создаем инвертированный индекс
-            2. Делаем Set из id документов где есть хотя бы часть искомого слова
-            3. Считаем полные совпадения.
-            4. Считаем частичные совпадения.
-            5. Включаем объект с информацией (id, полные совпадения, неполные совпадения) в итоговый список.
-            6. Сортируем сперва по полным совпадениям, затем по неполным, по убыванию.
-         */
+
         Map<String, List<String>> index = new HashMap<>();                                                  // |
         Map<String, String> allDocs = new HashMap<>();                                                      // |
         List<String> invertedSearchResult = new ArrayList<>();                                              // |
-        for (Map<String, String> map : docs) {                                                              // | - п. 1.
+        for (Map<String, String> map : docs) {                                                              // | - p. 1.
             String docText = map.get("text");                                                               // |
             String documentId = map.get("id");                                                              // |
             if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText);                         // |
@@ -55,7 +48,7 @@ public class SearchEngine {
                 Arrays.stream(correctedWord.split("\\s+")).toList(); // будет список из 1 слова
 
         Set<String> docsIdSet = piecesOfRequest.stream()                                                    // |
-                .filter(index::containsKey)                                                                 // | - п. 2.
+                .filter(index::containsKey)                                                                 // | - p. 2.
                 .flatMap(s -> index.get(s).stream())                                                        // |
                 .collect(Collectors.toSet());                                                               // |
 
@@ -69,17 +62,17 @@ public class SearchEngine {
                     .toLowerCase()
                     .replaceAll("(\\p{Punct})*", "");
 
-            countFullMatches = countMatches(correctedDocText, correctedWord);                        // п.3.
+            countFullMatches = countMatches(correctedDocText, correctedWord);                        // p.3.
             String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");
 
-            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))                   // п.4.
+            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))                   // p.4.
                     .filter(piecesOfRequest::contains)
                     .distinct()
                     .count();
 
             // если никаких совпадений не найдено, то в результирующий список не включаем
             if (countFullMatches + countPartialMatches > 0)
-                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches));  // п.5.
+                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches));  // p.5.
         });
 
         //        matchesList.forEach(System.out::println);
@@ -87,7 +80,7 @@ public class SearchEngine {
         invertedSearchResult = matchesList.stream()
                 .sorted(Comparator.comparingLong(DocsIdFullAndPartialMatches::getFullMatches)               // |
                         .thenComparingLong(DocsIdFullAndPartialMatches::getPartialMatches))                 // |
-                .map(DocsIdFullAndPartialMatches::getId)                                                    // | - п. 6.
+                .map(DocsIdFullAndPartialMatches::getId)                                                    // | - p. 6.
                 .collect(Collectors.toList());                                                              // |
         Collections.reverse(invertedSearchResult);                                                          // |
         return invertedSearchResult;
