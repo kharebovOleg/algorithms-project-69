@@ -1,7 +1,5 @@
 package hexlet.code;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +20,15 @@ public class SearchEngine {
                 index.put(word, docList);
             }
         }
+    }
+
+    private static int countMatches(String text, String word) {
+        int count = 0;
+        while (text.contains(word)) {
+            text = text.replaceFirst(word, "");
+            count++;
+        }
+        return count;
     }
 
     public static List<String> search(List<Map<String, String>> docs, String word) {
@@ -62,7 +69,7 @@ public class SearchEngine {
                     .toLowerCase()
                     .replaceAll("(\\p{Punct})*", "");
 
-            countFullMatches = StringUtils.countMatches(correctedDocText, correctedWord);                        // п.3.
+            countFullMatches = countMatches(correctedDocText, correctedWord);                        // п.3.
             String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");
 
             countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))                   // п.4.
