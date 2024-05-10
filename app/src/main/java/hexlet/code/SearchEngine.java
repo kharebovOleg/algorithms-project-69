@@ -13,7 +13,6 @@ public class SearchEngine {
         String[] words = clearText.split("\\s+");
         for (String word : words) {
             word = word.toLowerCase();
-
             if (index.containsKey(word)) {
                 List<String> docList = index.get(word);
                 docList.add(documentId);
@@ -26,58 +25,67 @@ public class SearchEngine {
     }
 
     public static List<String> invertedSearch(List<Map<String, String>> docs, String word) {
-
-        Map<String, List<String>> index = new HashMap<>();
-        Map<String, String> allDocs = new HashMap<>(); // специально завели эту hashMap, она нам понадобится попозже
-        List<String> invertedSearchResult = new ArrayList<>();
-
-        // делаем инвертированный индекс
-        for (Map<String, String> map : docs) {
-            String docText = map.get("text");
-            String documentId = map.get("id");
-            if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText); // заполняем allDocs
-            addDocument(documentId, docText, index);
+        /*
+            1. Создаем инвертированный индекс
+            2. Делаем Set из id документов где есть хотя бы часть искомого слова
+            3. Считаем полные совпадения.
+            4. Считаем частичные совпадения.
+            5. Включаем объект с информацией (id, полные совпадения, неполные совпадения) в итоговый список.
+            6. Сортируем сперва по полным совпадениям, затем по неполным, по убыванию.
+         */
+        Map<String, List<String>> index = new HashMap<>();                                                  // |
+        Map<String, String> allDocs = new HashMap<>();                                                      // |
+        List<String> invertedSearchResult = new ArrayList<>();                                              // |
+        for (Map<String, String> map : docs) {                                                              // | - п. 1.
+            String docText = map.get("text");                                                               // |
+            String documentId = map.get("id");                                                              // |
+            if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText);                         // |
+            addDocument(documentId, docText, index);                                                        // |
         }
-
+        // todo Подумать как обойтись без allDocs. Может как-то получится доставать текст по id из docs
         String correctedWord = word.toLowerCase().replaceAll("(\\p{Punct})*", "");
-        List<String> piecesOfRequest =  // разбили запрос на слова, если было 1 слово то будет список из 1 слова
-                Arrays.stream(correctedWord.split("\\s+")).toList();
+        List<String> piecesOfRequest =  // разбили запрос на слова, если было 1 слово то
+                Arrays.stream(correctedWord.split("\\s+")).toList(); // будет список из 1 слова
 
-        Set<String> docsIdSet = piecesOfRequest.stream() // Set из id тех док-ов, где есть хотя бы часть искомого слова
-                .filter(index::containsKey)
-                .flatMap(s -> index.get(s).stream())
-                .collect(Collectors.toSet());
+        Set<String> docsIdSet = piecesOfRequest.stream()                                                    // |
+                .filter(index::containsKey)                                                                 // | - п. 2.
+                .flatMap(s -> index.get(s).stream())                                                        // |
+                .collect(Collectors.toSet());                                                               // |
 
         if (docsIdSet.isEmpty()) return invertedSearchResult; // если пусто, значит нет ни одного слова из запроса
-        List<DocsIdFullAndPartialMatches> matchesList = new ArrayList<>();
+        /*
 
-        // после того как посчитали полные совпадения надо поискать частичные
-        // для этого удалим все полные совпадения и поищем, что осталось
-        // если полных совпадений не было, значит текст не изменится
-
+        */
+        List<DocsIdFullAndPartialMatches> matchesList = new ArrayList<>(); // Итоговый список
         docsIdSet.forEach(docId -> {
             long countFullMatches;
             long countPartialMatches;
-            String correctedDocText = allDocs.get(docId).toLowerCase().replaceAll("(\\p{Punct})*", "");
-            countFullMatches = StringUtils.countMatches(correctedDocText, correctedWord);
-            String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");
 
-            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))
+            String correctedDocText = allDocs.get(docId)
+                    .toLowerCase()
+                    .replaceAll("(\\p{Punct})*", "");
+
+            countFullMatches = StringUtils.countMatches(correctedDocText, correctedWord);                    // п.3.
+            String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");     // п.4.
+
+            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))               // п.5.
                     .filter(piecesOfRequest::contains)
                     .distinct()
                     .count();
 
+            // если никаких совпадений не найдено, то в результирующий список не включаем
             if (countFullMatches + countPartialMatches > 0)
-                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches));
+                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches)); // п.6.
         });
 
         //        matchesList.forEach(System.out::println);
 
         invertedSearchResult = matchesList.stream()
-                .sorted(Comparator.comparing(DocsIdFullAndPartialMatches::getFullMatches).thenComparing(DocsIdFullAndPartialMatches::getPartialMatches))
+                .sorted(Comparator.comparingLong(DocsIdFullAndPartialMatches::getFullMatches) // п.6.1.
+                        .thenComparingLong(DocsIdFullAndPartialMatches::getPartialMatches))   // п.6.2.
                 .map(DocsIdFullAndPartialMatches::getId)
                 .collect(Collectors.toList());
-        Collections.reverse(invertedSearchResult);
+        Collections.reverse(invertedSearchResult); // п.6.3.
         return invertedSearchResult;
     }
 
