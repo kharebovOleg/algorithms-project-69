@@ -42,7 +42,7 @@ public class SearchEngine {
             if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText);                         // |
             addDocument(documentId, docText, index);                                                        // |
         }
-        // todo Подумать как обойтись без allDocs. Может как-то получится доставать текст по id из docs
+
         String correctedWord = word.toLowerCase().replaceAll("(\\p{Punct})*", "");
         List<String> piecesOfRequest =  // разбили запрос на слова, если было 1 слово то
                 Arrays.stream(correctedWord.split("\\s+")).toList(); // будет список из 1 слова
@@ -52,40 +52,37 @@ public class SearchEngine {
                 .flatMap(s -> index.get(s).stream())                                                        // |
                 .collect(Collectors.toSet());                                                               // |
 
-        if (docsIdSet.isEmpty()) return invertedSearchResult; // если пусто, значит нет ни одного слова из запроса
-        /*
+        if (docsIdSet.isEmpty()) return invertedSearchResult; // Если пусто, значит нет ни одного слова из запроса
 
-        */
         List<DocsIdFullAndPartialMatches> matchesList = new ArrayList<>(); // Итоговый список
         docsIdSet.forEach(docId -> {
             long countFullMatches;
             long countPartialMatches;
-
             String correctedDocText = allDocs.get(docId)
                     .toLowerCase()
                     .replaceAll("(\\p{Punct})*", "");
 
-            countFullMatches = StringUtils.countMatches(correctedDocText, correctedWord);                    // п.3.
-            String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");     // п.4.
+            countFullMatches = StringUtils.countMatches(correctedDocText, correctedWord);                        // п.3.
+            String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");
 
-            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))               // п.5.
+            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))                   // п.4.
                     .filter(piecesOfRequest::contains)
                     .distinct()
                     .count();
 
             // если никаких совпадений не найдено, то в результирующий список не включаем
             if (countFullMatches + countPartialMatches > 0)
-                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches)); // п.6.
+                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches));  // п.5.
         });
 
         //        matchesList.forEach(System.out::println);
 
         invertedSearchResult = matchesList.stream()
-                .sorted(Comparator.comparingLong(DocsIdFullAndPartialMatches::getFullMatches) // п.6.1.
-                        .thenComparingLong(DocsIdFullAndPartialMatches::getPartialMatches))   // п.6.2.
-                .map(DocsIdFullAndPartialMatches::getId)
-                .collect(Collectors.toList());
-        Collections.reverse(invertedSearchResult); // п.6.3.
+                .sorted(Comparator.comparingLong(DocsIdFullAndPartialMatches::getFullMatches)               // |
+                        .thenComparingLong(DocsIdFullAndPartialMatches::getPartialMatches))                 // |
+                .map(DocsIdFullAndPartialMatches::getId)                                                    // | - п. 6.
+                .collect(Collectors.toList());                                                              // |
+        Collections.reverse(invertedSearchResult);                                                          // |
         return invertedSearchResult;
     }
 
