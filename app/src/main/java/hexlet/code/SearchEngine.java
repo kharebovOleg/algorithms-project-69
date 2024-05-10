@@ -24,7 +24,7 @@ public class SearchEngine {
         }
     }
 
-    public static List<String> invertedSearch(List<Map<String, String>> docs, String word) {
+    public static List<String> search(List<Map<String, String>> docs, String word) {
         /*
             1. Создаем инвертированный индекс
             2. Делаем Set из id документов где есть хотя бы часть искомого слова
