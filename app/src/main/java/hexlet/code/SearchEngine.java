@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 public class SearchEngine {
 
-    // Добавление документа в индекс
     private static void addDocument(String documentId, String documentText, Map<String, List<String>> index) {
         String clearText = documentText.replaceAll("(\\p{Punct})*", "");
         String[] words = clearText.split("\\s+");
@@ -33,28 +32,28 @@ public class SearchEngine {
 
     public static List<String> search(List<Map<String, String>> docs, String word) {
 
-        Map<String, List<String>> index = new HashMap<>();                                                  // |
-        Map<String, String> allDocs = new HashMap<>();                                                      // |
-        List<String> invertedSearchResult = new ArrayList<>();                                              // |
-        for (Map<String, String> map : docs) {                                                              // | - p. 1.
-            String docText = map.get("text");                                                               // |
-            String documentId = map.get("id");                                                              // |
-            if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText);                         // |
-            addDocument(documentId, docText, index);                                                        // |
+        Map<String, List<String>> index = new HashMap<>();
+        Map<String, String> allDocs = new HashMap<>();
+        List<String> invertedSearchResult = new ArrayList<>();
+        for (Map<String, String> map : docs) {
+            String docText = map.get("text");
+            String documentId = map.get("id");
+            if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText);
+            addDocument(documentId, docText, index);
         }
 
         String correctedWord = word.toLowerCase().replaceAll("(\\p{Punct})*", "");
-        List<String> piecesOfRequest =  // разбили запрос на слова, если было 1 слово то
-                Arrays.stream(correctedWord.split("\\s+")).toList(); // будет список из 1 слова
+        List<String> piecesOfRequest =
+                Arrays.stream(correctedWord.split("\\s+")).toList();
 
-        Set<String> docsIdSet = piecesOfRequest.stream()                                                    // |
-                .filter(index::containsKey)                                                                 // | - p. 2.
-                .flatMap(s -> index.get(s).stream())                                                        // |
-                .collect(Collectors.toSet());                                                               // |
+        Set<String> docsIdSet = piecesOfRequest.stream()
+                .filter(index::containsKey)
+                .flatMap(s -> index.get(s).stream())
+                .collect(Collectors.toSet());
 
-        if (docsIdSet.isEmpty()) return invertedSearchResult; // Если пусто, значит нет ни одного слова из запроса
+        if (docsIdSet.isEmpty()) return invertedSearchResult;
 
-        List<DocsIdFullAndPartialMatches> matchesList = new ArrayList<>(); // Итоговый список
+        List<DocsIdFullAndPartialMatches> matchesList = new ArrayList<>();
         docsIdSet.forEach(docId -> {
             long countFullMatches;
             long countPartialMatches;
@@ -62,27 +61,24 @@ public class SearchEngine {
                     .toLowerCase()
                     .replaceAll("(\\p{Punct})*", "");
 
-            countFullMatches = countMatches(correctedDocText, correctedWord);                        // p.3.
+            countFullMatches = countMatches(correctedDocText, correctedWord);
             String docTextWithoutFullMatches = correctedDocText.replaceAll(correctedWord, "");
 
-            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))                   // p.4.
+            countPartialMatches = Arrays.stream(docTextWithoutFullMatches.split("\\s+"))
                     .filter(piecesOfRequest::contains)
                     .distinct()
                     .count();
 
-            // если никаких совпадений не найдено, то в результирующий список не включаем
             if (countFullMatches + countPartialMatches > 0)
-                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches));  // p.5.
+                matchesList.add(new DocsIdFullAndPartialMatches(docId, countFullMatches, countPartialMatches));
         });
 
-        //        matchesList.forEach(System.out::println);
-
         invertedSearchResult = matchesList.stream()
-                .sorted(Comparator.comparingLong(DocsIdFullAndPartialMatches::getFullMatches)               // |
-                        .thenComparingLong(DocsIdFullAndPartialMatches::getPartialMatches))                 // |
-                .map(DocsIdFullAndPartialMatches::getId)                                                    // | - p. 6.
-                .collect(Collectors.toList());                                                              // |
-        Collections.reverse(invertedSearchResult);                                                          // |
+                .sorted(Comparator.comparingLong(DocsIdFullAndPartialMatches::getFullMatches)
+                        .thenComparingLong(DocsIdFullAndPartialMatches::getPartialMatches))
+                .map(DocsIdFullAndPartialMatches::getId)
+                .collect(Collectors.toList());
+        Collections.reverse(invertedSearchResult);
         return invertedSearchResult;
     }
 

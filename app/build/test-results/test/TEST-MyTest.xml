@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="MyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2024-05-10T16:47:34" hostname="DESKTOP-15VMVI4" time="0.032">
+<testsuite name="MyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2024-05-10T17:00:07" hostname="DESKTOP-15VMVI4" time="0.029">
   <properties/>
   <testcase name="testAllContains()" classname="MyTest" time="0.02"/>
-  <testcase name="testWithFewWords()" classname="MyTest" time="0.004"/>
-  <testcase name="testNoContains()" classname="MyTest" time="0.001"/>
-  <testcase name="testOneContainsWithPunctuation()" classname="MyTest" time="0.002"/>
+  <testcase name="testWithFewWords()" classname="MyTest" time="0.003"/>
+  <testcase name="testNoContains()" classname="MyTest" time="0.0"/>
+  <testcase name="testOneContainsWithPunctuation()" classname="MyTest" time="0.001"/>
   <testcase name="testMetricWorks()" classname="MyTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
