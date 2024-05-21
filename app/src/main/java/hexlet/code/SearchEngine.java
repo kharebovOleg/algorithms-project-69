@@ -35,12 +35,12 @@ public class SearchEngine {
         Map<String, List<String>> index = new HashMap<>();
         Map<String, String> allDocs = new HashMap<>();
         List<String> invertedSearchResult = new ArrayList<>();
-        for (Map<String, String> map : docs) {
+        docs.forEach(map -> {
             String docText = map.get("text");
             String documentId = map.get("id");
             if (!allDocs.containsKey(documentId)) allDocs.put(documentId, docText);
             addDocument(documentId, docText, index);
-        }
+        });
 
         String correctedWord = word.toLowerCase().replaceAll("(\\p{Punct})*", "");
         List<String> piecesOfRequest =
