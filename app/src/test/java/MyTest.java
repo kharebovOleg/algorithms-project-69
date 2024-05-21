@@ -20,7 +20,7 @@ public class MyTest {
                 Map.of("id", "doc3", "text", doc3)
         );
 
-        List<String> result = SearchEngine.invertedSearch(docs, "shoot");
+        List<String> result = SearchEngine.search(docs, "shoot");
 
         assertEquals(List.of("doc1", "doc2", "doc3").size(), result.size());
     }
@@ -37,7 +37,7 @@ public class MyTest {
                 Map.of("id", "doc3", "text", doc3)
         );
 
-        List<String> result = SearchEngine.invertedSearch(docs, "shoot");
+        List<String> result = SearchEngine.search(docs, "shoot");
 
         assertEquals(List.of(), result);
     }
@@ -50,7 +50,7 @@ public class MyTest {
                 List.of(Map.of("id", "doc1", "text", doc1),
                         Map.of("id", "doc2", "text", doc2));
 
-        List<String> result1 = SearchEngine.invertedSearch(docs, "pint");
+        List<String> result1 = SearchEngine.search(docs, "pint");
         assertEquals(List.of("doc1", "doc2"), result1);
 
     }
@@ -71,7 +71,7 @@ public class MyTest {
                 Map.of("id", "doc5", "text", doc5)
         );
 
-        List<String> result = SearchEngine.invertedSearch(docs, "shoot");
+        List<String> result = SearchEngine.search(docs, "shoot");
         assertEquals(List.of("doc5", "doc2", "doc1", "doc4"), result);
     }
 
@@ -95,7 +95,7 @@ public class MyTest {
                 Map.of("id", "doc7", "text", doc7)
         );
 
-        List<String> result = SearchEngine.invertedSearch(docs, "This is a test text");
+        List<String> result = SearchEngine.search(docs, "This is a test text");
         assertEquals(List.of("doc7", "doc4", "doc5", "doc6", "doc1", "doc2"), result);
     }
 
